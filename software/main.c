@@ -1,7 +1,7 @@
 // tinyIRdecoder - IR remote receiver and NEC protocol decoder
 //
 // ATtiny13 receives IR signal via TSOP4838, decodes the signal
-// (NEC protocol) and displays address and command (hex values) on an
+// (NEC protocol) and displays address and command (hex values) on a
 // 4-digit 7-segment display via a MAX7219.
 //
 // For the 4-digit 7-segment display a MAX7219 is controlled via SPI
@@ -95,7 +95,7 @@ uint8_t addr, code;                       // for storing address and command cod
 // shift out byte value to MAX7219
 void SEG_byte(uint8_t value) {
   for(uint8_t i=8; i; i--, value <<= 1) { // shift out 8 bits, MSB first
-    PORTB &= ~(1<<DIN);                   // clear the bit first (saves some flash)
+    PORTB &= ~(1<<DIN);                   // clear the bit first (saves some flash this way)
     if(value & 0x80) PORTB |= (1<<DIN);   // set bit if appropriate
     PORTB |=  (1<<CLK);                   // clock high -> shift out the bit
     PORTB &= ~(1<<CLK);                   // clock low again (50ns < 1000 / 1.2)
