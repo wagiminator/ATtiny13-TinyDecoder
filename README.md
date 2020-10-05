@@ -1,5 +1,5 @@
 # TinyDecoder - IR Remote Receiver and NEC Decoder based on ATtiny13
-ATtiny13 receives IR signal via TSOP4838, decodes the signal (NEC protocol) and displays address and command (hex values) on an 4-digit 7-segment display via a MAX7219.
+ATtiny13 receives IR signal via TSOP4838, decodes the signal (NEC protocol) and displays address and command (hex values) on a 4-digit 7-segment display via a MAX7219.
 
 For the 4-digit 7-segment display a MAX7219 is controlled via SPI protocol with a simple bitbanging method. The MAX7219 is fast enough to be driven without delays even at the fastest clock speed of the ATtiny13. A transmission to the MAX7219 starts with pulling the CS line LOW. Afterwards two bytes are transmitted, the register address first and the register data second. The bytes are transmitted most significant bit first by setting the DIN line HIGH for a bit "1" or LOW for a bit "0" while the CLK line is LOW. The bit is shifted out on the rising edge of the CLK line. By setting the CS line HIGH again the end of the transmission is signified, the MAX7219 latches the two received bytes and writes the data byte into the register. 
 
