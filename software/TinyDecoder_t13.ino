@@ -70,8 +70,11 @@
 //                      GND  4|    |5  PB0 (D0) ------
 //                            +----+  
 //
-// Controller:  ATtiny13A
-// Clockspeed:  1.2 MHz internal
+// Controller: ATtiny13
+// Core:       MicroCore (https://github.com/MCUdude/MicroCore)
+// Clockspeed: 1.2 MHz internal
+// BOD:        BOD disabled (power saving)
+// Timing:     Micros disabled (timer0 in use)
 //
 // 2020 by Stefan Wagner 
 // Project Files (EasyEDA): https://easyeda.com/wagiminator
