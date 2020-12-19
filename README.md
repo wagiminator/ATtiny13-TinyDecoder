@@ -8,6 +8,8 @@ The basic wiring is shown below:
 
 ![wiring.png](https://github.com/wagiminator/ATtiny13-TinyDecoder/blob/main/documentation/TinyDecoder_wiring.png)
 
+Please remember that only the rechargeable LIR1220 Li-Ion batteries work. The "normal" CR1220s don't deliver enough power.
+
 # Software
 The IR NEC decoding function utilizes timer0 to measure the burst and pause lengths of the signal. The timer is automatically started and stopped or reset by the IR receiver via a pin change interrupt. The measured lengths are interpreted according to the NEC protocol and the transmitted code is calculated accordingly. The program was tested with the TSOP4838, but it should also work with other 38kHz IR receivers (note different pinout if necessary).
 
