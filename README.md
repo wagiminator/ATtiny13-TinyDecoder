@@ -12,6 +12,8 @@ The basic wiring is shown below:
 
 The device is powered by a 1220 coin cell battery. Please remember that only the rechargeable LIR1220 Li-Ion batteries work. The "normal" CR1220s don't deliver enough power.
 
+![pic3.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic3.jpg)
+
 # Software
 ## IR Receiving and Decoding
 The IR NEC decoding function utilizes timer0 to measure the burst and pause lengths of the signal. The timer is automatically started and stopped or reset by the IR receiver via a pin change interrupt. The measured lengths are interpreted according to the NEC protocol and the transmitted code is calculated accordingly. The program was tested with the TSOP4838, but it should also work with other 38kHz IR receivers (note different pinout if necessary).
@@ -140,6 +142,8 @@ int main(void) {
 }
 ```
 
+![pic2.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic2.jpg)
+
 # Compiling and Uploading
 Since there is no ICSP header on the board, you have to program the ATtiny either before soldering using an [SOP adapter](https://aliexpress.com/wholesale?SearchText=sop-8+150mil+adapter), or after soldering using an [EEPROM clip](https://aliexpress.com/wholesale?SearchText=sop8+eeprom+programming+clip). The [AVR Programmer Adapter](https://github.com/wagiminator/AVR-Programmer/tree/master/AVR_Programmer_Adapter) can help with this.
 
@@ -179,6 +183,3 @@ Since there is no ICSP header on the board, you have to program the ATtiny eithe
 3. [TSOP4838 Datasheet](https://www.vishay.com/docs/82459/tsop48.pdf)
 4. [IR Remote Control based on ATtiny13A](https://github.com/wagiminator/ATtiny13-TinyRemote)
 5. [How to use an I²C OLED with ATtiny13](https://github.com/wagiminator/ATtiny13-TinyOLEDdemo)
-
-![pic2.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic2.jpg)
-![pic3.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic3.jpg)
