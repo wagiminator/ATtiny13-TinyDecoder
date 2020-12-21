@@ -15,8 +15,7 @@ The device is powered by a 1220 coin cell battery. Please remember that only the
 ![pic3.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic3.jpg)
 
 # Software
-## Implementation
-### IR Receiving and Decoding
+## IR Receiving and Decoding
 The IR NEC decoding function utilizes timer0 to measure the burst and pause lengths of the signal. The timer is automatically started and stopped or reset by the IR receiver via a pin change interrupt. The measured lengths are interpreted according to the NEC protocol and the transmitted code is calculated accordingly. The program was tested with the TSOP4838, but it should also work with other 38kHz IR receivers (note different pinout if necessary).
 
 The output of the IR reciever is inverted, a burst is indicated by a LOW signal, a pause by a HIGH signal. IR message starts with a 9ms leading burst followed by a 4.5ms pause. Afterwards 4 data bytes are transmitted, least significant bit first. A "0" bit is a 562.5us burst followed by a 562.5us pause, a "1" bit is a 562.5us burst followed by a 1687.5us pause. A final 562.5us burst signifies the end of the transmission. The four data bytes are in order:
@@ -112,10 +111,10 @@ ISR (PCINT0_vect) {
 }
 ```
 
-### I²C OLED Implementation
+## I²C OLED Implementation
 The I²C protocol implementation is based on a crude bitbanging method. It was specifically designed for the limited resources of ATtiny10 and ATtiny13, but should work with some other AVRs as well. The functions for the OLED are adapted to the SSD1306 128x32 OLED module, but they can easily be modified to be used for other modules. In order to save resources, only the basic functionalities which are needed for this application are implemented. For a detailed information on the working principle of the I²C OLED implementation visit [TinyOLEDdemo](https://github.com/wagiminator/attiny13-tinyoleddemo).
 
-### Main Function
+## Main Function
 The main function just brings it all together:
 
 ```c
