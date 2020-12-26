@@ -152,7 +152,7 @@ const uint8_t OLED_INIT_CMD[] PROGMEM = {
   0xA1, 0xC8        // flip the screen
 };
 
-// simple reduced 3x8 font
+// OLED simple reduced 3x8 font
 const uint8_t OLED_FONT[] PROGMEM = {
   0x7F, 0x41, 0x7F, // 0  0
   0x00, 0x00, 0x7F, // 1  1
@@ -216,7 +216,7 @@ void OLED_clearScreen(void) {
   I2C_stop();                             // stop transmission
 }
 
-// OLED stretch 8-bit (x) to 16-bit and write it several times (t)
+// OLED stretch 8-bit value (x) to 16-bit and write it several times (t)
 // abcdefgh -> aabbccddeeffgghh
 // refer to http://www.technoblogy.com/show?LKP
 void OLED_stretch (uint16_t x, uint8_t t) {
@@ -321,7 +321,7 @@ uint8_t IR_readNEC(void) {
   return IR_NEC;                          // return NEC success
 }
 
-// wait for and read valid IR command (repeat code will be ignored)
+// IR wait for and read valid IR command (repeat code will be ignored)
 uint8_t IR_read(void) {
   uint8_t protocol = IR_FAIL;             // variables for received protocol
   GIMSK |= (1<<PCIE);                     // enable pin change interrupts
