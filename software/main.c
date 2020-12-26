@@ -89,11 +89,6 @@
 #define I2C_SDA         PB2               // I2C serial data pin
 #define IR_OUT          PB3               // IR receiver pin
 
-// global variables
-volatile uint8_t IR_duration;             // for storing duration of last burst/pause
-uint16_t addr;                            // for storing command code
-uint8_t  cmd;                             // for storing command code
-
 // -----------------------------------------------------------------------------
 // I2C Implementation
 // -----------------------------------------------------------------------------
@@ -278,6 +273,11 @@ void OLED_printHex(uint8_t val) {
 #define IR_562us        11                          //  562us * 1.2 MHz / 64
 #define IR_FAIL         0
 #define IR_NEC          1
+
+// IR global variables
+volatile uint8_t IR_duration;             // for storing duration of last burst/pause
+uint16_t addr;                            // for storing address code
+uint8_t  cmd;                             // for storing command code
 
 // IR initialize the receiver
 void IR_init(void) {
