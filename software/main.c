@@ -92,7 +92,7 @@
 // global variables
 volatile uint8_t IR_duration;             // for storing duration of last burst/pause
 uint16_t addr;                            // for storing command code
-uint8_t cmd;                              // for storing command code
+uint8_t  cmd;                             // for storing command code
 
 // -----------------------------------------------------------------------------
 // I2C Implementation
@@ -279,13 +279,6 @@ void OLED_printHex(uint8_t val) {
 #define IR_FAIL         0
 #define IR_NEC          1
 
-// IR check if current signal length matches the desired duration
-uint8_t IR_checkDur(uint8_t dur) {
-  uint8_t error = dur >> 3; if (error < 6) error = 6;
-  if (IR_duration > dur) return ((IR_duration - dur) < error);
-  return ((dur - IR_duration) < error);
-}
-
 // IR initialize the receiver
 void IR_init(void) {
   DDRB  &= ~(1<<IR_OUT);                  // IR pin as input
@@ -293,6 +286,13 @@ void IR_init(void) {
   TCCR0A = 0;                             // timer/counter normal mode
   TCCR0B = (1<<CS01) | (1<<CS00);         // start the timer, prescaler 64
   sei();                                  // enable global interrupts
+}
+
+// IR check if current signal length matches the desired duration
+uint8_t IR_checkDur(uint8_t dur) {
+  uint8_t error = dur >> 3; if (error < 6) error = 6;
+  if (IR_duration > dur) return ((IR_duration - dur) < error);
+  return ((dur - IR_duration) < error);
 }
 
 // IR read data according to NEC protocol
