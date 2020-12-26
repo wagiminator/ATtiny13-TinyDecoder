@@ -339,10 +339,6 @@ uint8_t IR_read(void) {
   return protocol;
 }
 
-// -----------------------------------------------------------------------------
-// Interrupt Service Routines
-// -----------------------------------------------------------------------------
-
 // pin change interrupt service routine
 ISR (PCINT0_vect) {
   IR_duration = TCNT0;                    // save timer value
