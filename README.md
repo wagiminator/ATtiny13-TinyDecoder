@@ -177,9 +177,16 @@ Since there is no ICSP header on the board, you have to program the ATtiny eithe
 - Navigate to the folder with the makefile and main.c.
 - Run "make install" to compile, burn the fuses and upload the firmware.
 
+## Upgrading to an ATtiny25
+The 1 kB flash of the ATtiny13 is too small to implement the decoding of several protocols in combination with an OLED display (at least I didn't manage to do it). Fortunately, there are pin-compatible models with more memory. The ATtiny25 is available in the same package (150mil SOIC-8, e.g. ATtiny25-20SSU) and double flash memory. In order not to reinvent the wheel, I took David Johnson-Davies' excellent implementation of his [IR Remote Control Detective](http://www.technoblogy.com/show?24A9) for the ATtiny85 and adapted it so that it works with the 2 kB flash of the ATtiny25. In addition to the NEC protocol, Samsung, Sony and RC-5 can also be decoded without further hardware adjustments.
+
+![pic4.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic4.jpg)
+![pic5.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic5.jpg)
+
 # References, Links and Notes
 1. [ATtiny13A Datasheet](http://ww1.microchip.com/downloads/en/DeviceDoc/doc8126.pdf)
 2. [SSD1306 Datasheet](https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf)
 3. [TSOP4838 Datasheet](https://www.vishay.com/docs/82459/tsop48.pdf)
 4. [IR Remote Control based on ATtiny13A](https://github.com/wagiminator/ATtiny13-TinyRemote)
 5. [How to use an I²C OLED with ATtiny13](https://github.com/wagiminator/ATtiny13-TinyOLEDdemo)
+6. [IR Remote Control Detective](http://www.technoblogy.com/show?24A9)
