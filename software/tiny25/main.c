@@ -248,6 +248,7 @@ void OLED_printHex(uint16_t val, uint8_t xpos, uint8_t ypos) {
 volatile uint32_t RecdData;
 volatile int8_t   Bit, Edge;
 volatile uint8_t  IRtype;
+uint8_t StartScreen = 0;
   
 // protocol timings
 const uint8_t Micros =        64;   // number of microseconds per TCNT1 count
@@ -270,6 +271,7 @@ const uint8_t RC5type = 3;
 const uint8_t SONtype = 4;
 
 // some "strings"
+const uint8_t IRD[] PROGMEM = { 1, 19, 22, 13, 14, 12, 0, 13, 14, 19, 255};  // "IR DECODER"
 const uint8_t ADR[] PROGMEM = {10, 13, 19, 21, 255};  // "ADR:"
 const uint8_t CMD[] PROGMEM = {12, 17, 13, 21, 255};  // "CMD:"
 const uint8_t IRT[] PROGMEM = {22, 22, 22, 22, 255,   // "    "
@@ -280,6 +282,12 @@ const uint8_t IRT[] PROGMEM = {22, 22, 22, 22, 255,   // "    "
 
 // print received code
 void ReceivedCode(uint8_t IRtype, uint16_t Address, uint16_t Command) {
+  if (!StartScreen) {
+    StartScreen = 1;
+    OLED_clearScreen();
+    OLED_printString(ADR, 50, 0);
+    OLED_printString(CMD, 50, 2);
+  }
   if (IRtype < 4) {
     OLED_printString(IRT + IRtype + (IRtype<<2), 0, 0);
     OLED_printChar(22, 9, 2); OLED_printChar(22, 18, 2);
@@ -365,9 +373,8 @@ int main(void) {
   GIMSK = 1<<PCIE;              // enable pin change interrupts
   sei();                        // enable global interrupts
 
-  // print headings
-  OLED_printString(ADR, 50, 0);
-  OLED_printString(CMD, 50, 2);
+  // print heading
+  OLED_printString(IRD, 18, 1);
 
   // loop
   while(1);                     // everything done under interrupt!
