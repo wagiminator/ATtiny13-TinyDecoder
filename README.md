@@ -1,6 +1,7 @@
 # TinyDecoder - IR Remote Receiver and NEC Decoder based on ATtiny13A
 ATtiny13A receives IR signal via TSOP4838, decodes the signal (NEC protocol) and displays address and command (hex values) on an SSD1306 128x32 OLED display.
 
+- Project Video (YouTube): https://youtu.be/LEl5Z9QBuHo
 - Project Files (EasyEDA): https://easyeda.com/wagiminator/attiny13-tinydetectorir
 
 ![pic1.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic1.jpg)
