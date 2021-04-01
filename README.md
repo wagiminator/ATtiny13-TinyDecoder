@@ -1,8 +1,8 @@
 # TinyDecoder - IR Remote Receiver and NEC Decoder based on ATtiny13A
-ATtiny13A receives IR signal via TSOP4838, decodes the signal (NEC protocol) and displays address and command (hex values) on an SSD1306 128x32 OLED display.
+TinyDecoderIR is a simple stand-alone IR remote control receiver and protocol decoder with an OLED display based on ATtiny13A (NEC protocol only) or ATtiny25 (NEC, RC-5, SONY SIRC, SAMSUNG protocols).
 
 - Project Video (YouTube): https://youtu.be/LEl5Z9QBuHo
-- Project Files (EasyEDA): https://easyeda.com/wagiminator/attiny13-tinydetectorir
+- Design Files (EasyEDA): https://easyeda.com/wagiminator/attiny13-tinydetectorir
 
 ![pic1.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyDecoder/main/documentation/TinyDecoder_pic1.jpg)
 
@@ -19,7 +19,7 @@ The device is powered by a 1220 coin cell battery. Please remember that only the
 ## IR Receiving and Decoding
 The IR NEC decoding function utilizes timer0 to measure the burst and pause lengths of the signal. The timer is automatically started and stopped or reset by the IR receiver via a pin change interrupt. The measured lengths are interpreted according to the NEC protocol and the transmitted code is calculated accordingly. The program was tested with the TSOP4838, but it should also work with other 38kHz IR receivers (note different pinout if necessary).
 
-The output of the IR reciever is inverted (active LOW), a burst is indicated by a LOW signal, a pause by a HIGH signal. IR message starts with a 9ms leading burst followed by a 4.5ms pause. Afterwards 4 data bytes are transmitted, least significant bit first. A "0" bit is a 562.5us burst followed by a 562.5us pause, a "1" bit is a 562.5us burst followed by a 1687.5us pause. A final 562.5us burst signifies the end of the transmission. According to the data sheet of the TSOP4838, the length of the output signal differs from the transmitted signal by up to 158 microseconds, which the code must take into account. The four data bytes are in order:
+The output of the IR reciever is inverted (active LOW), a burst is indicated by a LOW signal, a pause by a HIGH signal. IR message starts with a 9ms leading burst followed by a 4.5ms pause. Afterwards 4 data bytes are transmitted, least significant bit first. A "0" bit is a 562.5µs burst followed by a 562.5µs pause, a "1" bit is a 562.5µs burst followed by a 1687.5µs pause. A final 562.5µs burst signifies the end of the transmission. According to the data sheet of the TSOP4838, the length of the output signal differs from the transmitted signal by up to 158 microseconds, which the code must take into account. The four data bytes are in order:
 - the 8-bit address for the receiving device,
 - the 8-bit logical inverse of the address,
 - the 8-bit command and
