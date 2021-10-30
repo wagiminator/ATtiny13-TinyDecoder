@@ -1,5 +1,15 @@
-// tinyDecoderIR - IR remote receiver and NEC protocol decoder
+// ===================================================================================
+// Project:   TinyDecoderIR - IR remote receiver and NEC protocol decoder
+// Version:   v1.0
+// Year:      2020
+// Author:    Stefan Wagner
+// Github:    https://github.com/wagiminator
+// EasyEDA:   https://easyeda.com/wagiminator
+// License:   http://creativecommons.org/licenses/by-sa/3.0/
+// ===================================================================================
 //
+// Description:
+// ------------
 // ATtiny13A receives IR signal via TSOP4838, decodes the signal
 // (NEC protocol) and displays address and command (hex values) on an
 // SSD1306 128x32 OLED display.
@@ -49,7 +59,8 @@
 // For this application the repeat code will be ignored because it's not
 // needed here.
 //
-//
+// Wiring:
+// -------
 //             +-------+
 // OUT ------ 1|   --  |
 // GND ------ 2|  (  ) |  TSOP4838
@@ -63,38 +74,45 @@
 // ---|GND +--------------------+   |
 //    +-----------------------------+
 //
-//                            +-\/-+
-//          --- A0 (D5) PB5  1|°   |8  Vcc
-// TSOP4838 --- A3 (D3) PB3  2|    |7  PB2 (D2) A1 --- SDA OLED
-//          --- A2 (D4) PB4  3|    |6  PB1 (D1) ------ SCL OLED
-//                      GND  4|    |5  PB0 (D0) ------
-//                            +----+  
+//                             +-\/-+
+//          --- RST ADC0 PB5  1|°   |8  Vcc
+// TSOP4838 ------- ADC3 PB3  2|    |7  PB2 ADC1 -------- SDA OLED
+//          ------- ADC2 PB4  3|    |6  PB1 AIN1 OC0B --- SCL OLED
+//                       GND  4|    |5  PB0 AIN0 OC0A --- 
+//                             +----+
 //
-// Controller: ATtiny13
-// Core:       MicroCore (https://github.com/MCUdude/MicroCore)
-// Clockspeed: 1.2 MHz internal
-// BOD:        BOD disabled (power saving)
-// Timing:     Micros disabled (timer0 in use)
+// Compilation Settings:
+// ---------------------
+// Controller:  ATtiny13A
+// Core:        MicroCore (https://github.com/MCUdude/MicroCore)
+// Clockspeed:  1.2 MHz internal
+// BOD:         BOD disabled
+// Timing:      Micros disabled
 //
-// 2020 by Stefan Wagner 
-// Project Files (EasyEDA): https://easyeda.com/wagiminator
-// Project Files (Github):  https://github.com/wagiminator
-// License: http://creativecommons.org/licenses/by-sa/3.0/
+// Leave the rest on default settings. Don't forget to "Burn bootloader"!
+// No Arduino core functions or libraries are used. Use the makefile if 
+// you want to compile without Arduino IDE.
+//
+// Fuse settings: -U lfuse:w:0x2a:m -U hfuse:w:0xff:m
 
 
-// libraries
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
+// ===================================================================================
+// Libraries and Definitions
+// ===================================================================================
 
-// pin definitions
+// Libraries
+#include <avr/io.h>                       // for GPIO
+#include <avr/interrupt.h>                // for interrupts
+#include <avr/pgmspace.h>                 // to store data in program memory
+
+// Pin definitions
 #define I2C_SCL         PB1               // I2C serial clock pin
 #define I2C_SDA         PB2               // I2C serial data pin
 #define IR_OUT          PB3               // IR receiver pin
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // I2C Implementation
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // I2C macros
 #define I2C_SDA_HIGH()  DDRB &= ~(1<<I2C_SDA) // release SDA   -> pulled HIGH by resistor
@@ -112,7 +130,7 @@ void I2C_init(void) {
 void I2C_write(uint8_t data) {
   for(uint8_t i = 8; i; i--, data<<=1) {  // transmit 8 bits, MSB first
     I2C_SDA_LOW();                        // SDA LOW for now (saves some flash this way)
-    if (data & 0x80) I2C_SDA_HIGH();      // SDA HIGH if bit is 1
+    if(data & 0x80) I2C_SDA_HIGH();       // SDA HIGH if bit is 1
     I2C_SCL_HIGH();                       // clock HIGH -> slave reads the bit
     I2C_SCL_LOW();                        // clock LOW again
   }
@@ -135,9 +153,9 @@ void I2C_stop(void) {
   I2C_SDA_HIGH();                         // stop condition: SDA goes HIGH second
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // OLED Implementation
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // OLED definitions
 #define OLED_ADDR       0x78              // OLED write address
@@ -187,7 +205,7 @@ void OLED_init(void) {
   I2C_init();                             // initialize I2C first
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_CMD_MODE);               // set command mode
-  for (uint8_t i = 0; i < OLED_INIT_LEN; i++) 
+  for(uint8_t i = 0; i < OLED_INIT_LEN; i++) 
     I2C_write(pgm_read_byte(&OLED_INIT_CMD[i])); // send the command bytes
   I2C_stop();                             // stop transmission
 }
@@ -210,24 +228,24 @@ void OLED_clearScreen(void) {
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_DAT_MODE);               // set data mode
   uint8_t i = 0;                          // count variable
-  do {I2C_write(0x00);} while (--i);      // clear upper half
+  do {I2C_write(0x00);} while(--i);       // clear upper half
   I2C_stop();                             // stop transmission
   OLED_setCursor(0, 2);                   // set cursor at lower half
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_DAT_MODE);               // set data mode
-  do {I2C_write(0x00);} while (--i);      // clear upper half
+  do {I2C_write(0x00);} while(--i);       // clear lower half
   I2C_stop();                             // stop transmission
 }
 
 // OLED stretch 8-bit value (x) to 16-bit and write it several times (t)
 // abcdefgh -> aabbccddeeffgghh
 // refer to http://www.technoblogy.com/show?LKP
-void OLED_stretch (uint16_t x, uint8_t t) {
+void OLED_stretch(uint16_t x, uint8_t t) {
   x  = (x & 0xF0)<<4 | (x & 0x0F);
   x  = (x<<2 | x) & 0x3333;
   x  = (x<<1 | x) & 0x5555;
   x |= x<<1;
-  for (; t; t--) {                        // print t-times on the OLED
+  for(; t; t--) {                         // print t-times on the OLED
     I2C_write(x);                         // write low  byte
     I2C_write(x>>8);                      // write high byte
   }
@@ -247,7 +265,7 @@ void OLED_printString(const uint8_t* p) {
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_DAT_MODE);               // set data mode
   uint8_t ch = pgm_read_byte(p);          // read first character from program memory
-  while (ch < 255) {                      // repeat until string terminator
+  while(ch < 255) {                       // repeat until string terminator
     OLED_printChar(ch);                   // print character on OLED
     ch = pgm_read_byte(++p);              // read next character
   }
@@ -263,9 +281,9 @@ void OLED_printHex(uint8_t val) {
   I2C_stop();                             // stop transmission
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // IR Receiver Implementation
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // IR receiver definitions and macros
 #define IR_WAIT_LOW()   while( PINB & (1<<IR_OUT))  // wait for IR line going LOW
@@ -285,7 +303,7 @@ uint8_t  cmd;                             // for storing command code
 // IR initialize the receiver
 void IR_init(void) {
   DDRB  &= ~(1<<IR_OUT);                  // IR pin as input
-  PCMSK |= (1<<IR_OUT);                   // enable interrupt on IR pin
+  PCMSK |=  (1<<IR_OUT);                  // enable interrupt on IR pin
   TCCR0A = 0;                             // timer/counter normal mode
   TCCR0B = (1<<CS01) | (1<<CS00);         // start the timer, prescaler 64
   sei();                                  // enable global interrupts
@@ -293,23 +311,23 @@ void IR_init(void) {
 
 // IR check if current signal length matches the desired duration
 uint8_t IR_checkDur(uint8_t dur) {
-  uint8_t error = dur >> 3; if (error < 6) error = 6;
-  if (IR_duration > dur) return ((IR_duration - dur) < error);
-  return ((dur - IR_duration) < error);
+  uint8_t error = dur >> 3; if(error < 6) error = 6;
+  if(IR_duration > dur) return((IR_duration - dur) < error);
+  return((dur - IR_duration) < error);
 }
 
 // IR read data according to NEC protocol
 uint8_t IR_readNEC(void) {
   uint32_t data;
   IR_WAIT_LOW();                          // wait for end of start pause
-  if (!IR_checkDur(IR_4500us)) return 0;  // exit if no start condition
-  for (uint8_t i=32; i; i--) {            // receive 32 bits
+  if(!IR_checkDur(IR_4500us)) return 0;   // exit if no start condition
+  for(uint8_t i=32; i; i--) {             // receive 32 bits
     data >>= 1;                           // LSB first
     IR_WAIT_HIGH();                       // wait for end of burst
-    if (!IR_checkDur(IR_562us)) return 0; // exit if burst has incorrect length
+    if(!IR_checkDur(IR_562us)) return 0;  // exit if burst has incorrect length
     IR_WAIT_LOW();                        // wait for end of pause
-    if (IR_checkDur(IR_1687us)) data |= 0x80000000; // bit "0" or "1" depends on pause duration
-    else if (!IR_checkDur(IR_562us)) return 0;      // exit if it's neither "0" nor "1"
+    if(IR_checkDur(IR_1687us)) data |= 0x80000000; // bit "0" or "1" depends on pause duration
+    else if(!IR_checkDur(IR_562us)) return 0;      // exit if it's neither "0" nor "1"
   }
   IR_WAIT_HIGH();                         // wait for end of final burst
   if (!IR_checkDur(IR_562us)) return 0;   // exit if burst has incorrect length
@@ -317,9 +335,9 @@ uint8_t IR_readNEC(void) {
   uint8_t addr2 = data >> 8;              // get second address byte
   uint8_t cmd1  = data >> 16;             // get first  command byte
   uint8_t cmd2  = data >> 24;             // get second command byte
-  if ((cmd1 + cmd2) < 255) return 0;      // if second command byte is not the inverse of the first
+  if((cmd1 + cmd2) < 255) return 0;       // if second command byte is not the inverse of the first
   cmd = cmd1;                             // get the command
-  if ((addr1 + addr2) == 255) addr = addr1;   // check if it's extended NEC-protocol ...
+  if((addr1 + addr2) == 255) addr = addr1;// check if it's extended NEC-protocol ...
   else addr = data;                       // ... and get the correct address
   return IR_NEC;                          // return NEC success
 }
@@ -332,44 +350,44 @@ uint8_t IR_read(void) {
     IR_WAIT_HIGH();                       // wait for start conditions
     IR_WAIT_LOW();                        // wait for first burst
     IR_WAIT_HIGH();                       // wait for end of first burst
-    if (IR_checkDur(IR_9000us))           // if NEC start condition
+    if(IR_checkDur(IR_9000us))            // if NEC start condition
       protocol = IR_readNEC();            //   read NEC
   } while(!protocol);                     // ... until valid code received
   GIMSK &= ~(1<<PCIE);                    // disable pin change interrupts
   return protocol;
 }
 
-// pin change interrupt service routine
-ISR (PCINT0_vect) {
+// Pin change interrupt service routine
+ISR(PCINT0_vect) {
   IR_duration = TCNT0;                    // save timer value
   TCNT0 = 0;                              // reset timer0
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Main Function
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
-// some "strings"
+// Some "strings"
 const uint8_t ADR[] PROGMEM = {10, 13, 13, 19, 14,  5,  5, 21, 22, 22, 255};
 const uint8_t CMD[] PROGMEM = {12,  0, 17, 17, 10, 18, 13, 21, 22, 22, 22, 22, 255};
 const uint8_t IRR[] PROGMEM = { 1, 19, 22, 18, 14, 12, 22, 13, 14, 12,  0, 13, 14, 19, 255};
 const uint8_t SPC[] PROGMEM = {22, 22, 255};
 
-// main function
+// Main function
 int main(void) {
-  // setup
+  // Setup
   IR_init();                              // initialize IR receiver
   OLED_init();                            // initialize the OLED
   OLED_clearScreen();                     // clear screen
   OLED_setCursor(0,1);                    // set cursor to start of second line
   OLED_printString(IRR);                  // print "IR NEC DECODER"
 
-  // loop
+  // Loop
   while(1) {                              // loop until forever
     IR_read();                            // wait for and read IR signal
     OLED_setCursor(0,0);                  // set cursor to start of first line
     OLED_printString(ADR);                // print "ADDRESS: "
-    if (addr > 255) OLED_printHex(addr >> 8);  // extended NEC
+    if(addr > 255) OLED_printHex(addr >> 8);  // extended NEC
     else OLED_printString(SPC);
     OLED_printHex(addr);                  // print received address
     OLED_setCursor(0,2);                  // set cursor to start of third line

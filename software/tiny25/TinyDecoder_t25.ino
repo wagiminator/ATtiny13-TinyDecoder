@@ -1,5 +1,15 @@
-// tinyDecoderIR - IR remote receiver and protocol decoder
+// ===================================================================================
+// Project:   TinyDecoderIR - IR remote receiver and NEC protocol decoder
+// Version:   v1.0
+// Year:      2020
+// Author:    Stefan Wagner
+// Github:    https://github.com/wagiminator
+// EasyEDA:   https://easyeda.com/wagiminator
+// License:   http://creativecommons.org/licenses/by-sa/3.0/
+// ===================================================================================
 //
+// Description:
+// ------------
 // ATtiny25 receives IR signal via TSOP4838, decodes the signal and
 // displays address and command (hex values) on an SSD1306 128x32 OLED
 // display.
@@ -14,9 +24,13 @@
 // For a detailed information on the working principle of the I²C OLED
 // implementation visit https://github.com/wagiminator/attiny13-tinyoleddemo
 //
+// References:
+// -----------
 // The IR decoding function is taken from David Johnson-Davies' IR Remote
 // Control Detective: http://www.technoblogy.com/show?24A9
 //
+// Wiring:
+// -------
 //             +-------+
 // OUT ------ 1|   --  |
 // GND ------ 2|  (  ) |  TSOP4838
@@ -30,35 +44,46 @@
 // ---|GND +--------------------+   |
 //    +-----------------------------+
 //
-//                            +-\/-+
-//          --- A0 (D5) PB5  1|°   |8  Vcc
-// TSOP4838 --- A3 (D3) PB3  2|    |7  PB2 (D2) A1 --- SDA OLED
-//          --- A2 (D4) PB4  3|    |6  PB1 (D1) ------ SCL OLED
-//                      GND  4|    |5  PB0 (D0) ------
-//                            +----+  
+//                             +-\/-+
+//          --- RST ADC0 PB5  1|°   |8  Vcc
+// TSOP4838 ------- ADC3 PB3  2|    |7  PB2 ADC1 -------- SDA OLED
+//          ------- ADC2 PB4  3|    |6  PB1 AIN1 OC0B --- SCL OLED
+//                       GND  4|    |5  PB0 AIN0 OC0A --- 
+//                             +----+
 //
-// Controller:  ATtiny25
-// Clockspeed:  1 MHz internal
+// Compilation Settings:
+// ---------------------
+// Core:    ATtinyCore (https://github.com/SpenceKonde/ATTinyCore)
+// Board:   ATtiny25/45/85 (No bootloader)
+// Chip:    ATtiny25 or 45 or 85 (depending on your chip)
+// Clock:   1 MHz (internal)
+// Millis:  disabled
+// B.O.D.:  2.7V
 //
-// 2020 by Stefan Wagner 
-// Project Files (EasyEDA): https://easyeda.com/wagiminator
-// Project Files (Github):  https://github.com/wagiminator
-// License: http://creativecommons.org/licenses/by-sa/3.0/
+// Leave the rest on default settings. Don't forget to "Burn bootloader"!
+// No Arduino core functions or libraries are used. Use the makefile if 
+// you want to compile without Arduino IDE.
+//
+// Fuse settings: -U lfuse:w:0x62:m -U hfuse:w:0xd7:m -U efuse:w:0xff:m
 
 
-// libraries
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
+// ===================================================================================
+// Libraries and Definitions
+// ===================================================================================
 
-// pin definitions
+// Libraries
+#include <avr/io.h>                       // for GPIO
+#include <avr/interrupt.h>                // for interrupts
+#include <avr/pgmspace.h>                 // to store data in program memory
+
+// Pin definitions
 #define I2C_SCL         PB1               // I2C serial clock pin
 #define I2C_SDA         PB2               // I2C serial data pin
 #define IR_OUT          PB3               // IR receiver pin
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // I2C Implementation
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // I2C macros
 #define I2C_SDA_HIGH()  DDRB &= ~(1<<I2C_SDA) // release SDA   -> pulled HIGH by resistor
@@ -76,7 +101,7 @@ void I2C_init(void) {
 void I2C_write(uint8_t data) {
   for(uint8_t i = 8; i; i--, data<<=1) {  // transmit 8 bits, MSB first
     I2C_SDA_LOW();                        // SDA LOW for now (saves some flash this way)
-    if (data & 0x80) I2C_SDA_HIGH();      // SDA HIGH if bit is 1
+    if(data & 0x80) I2C_SDA_HIGH();       // SDA HIGH if bit is 1
     I2C_SCL_HIGH();                       // clock HIGH -> slave reads the bit
     I2C_SCL_LOW();                        // clock LOW again
   }
@@ -99,9 +124,9 @@ void I2C_stop(void) {
   I2C_SDA_HIGH();                         // stop condition: SDA goes HIGH second
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // OLED Implementation
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // OLED definitions
 #define OLED_ADDR       0x78              // OLED write address
@@ -119,7 +144,7 @@ const uint8_t OLED_INIT_CMD[] PROGMEM = {
   0xA1, 0xC8        // flip the screen
 };
 
-// simple reduced 3x8 font
+// Simple reduced 3x8 font
 const uint8_t OLED_FONT[] PROGMEM = {
   0x7F, 0x41, 0x7F, // 0  0
   0x00, 0x00, 0x7F, // 1  1
@@ -151,7 +176,7 @@ void OLED_init(void) {
   I2C_init();                             // initialize I2C first
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_CMD_MODE);               // set command mode
-  for (uint8_t i = 0; i < OLED_INIT_LEN; i++) 
+  for(uint8_t i = 0; i < OLED_INIT_LEN; i++) 
     I2C_write(pgm_read_byte(&OLED_INIT_CMD[i])); // send the command bytes
   I2C_stop();                             // stop transmission
 }
@@ -174,24 +199,24 @@ void OLED_clearScreen(void) {
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_DAT_MODE);               // set data mode
   uint8_t i = 0;                          // count variable
-  do {I2C_write(0x00);} while (--i);      // clear upper half
+  do {I2C_write(0x00);} while(--i);       // clear upper half
   I2C_stop();                             // stop transmission
   OLED_setCursor(0, 2);                   // set cursor at lower half
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_DAT_MODE);               // set data mode
-  do {I2C_write(0x00);} while (--i);      // clear upper half
+  do {I2C_write(0x00);} while(--i);       // clear lower half
   I2C_stop();                             // stop transmission
 }
 
 // OLED stretch 8-bit (x) to 16-bit and write it several times (t)
 // abcdefgh -> aabbccddeeffgghh
 // refer to http://www.technoblogy.com/show?LKP
-void OLED_stretch (uint16_t x, uint8_t t) {
+void OLED_stretch(uint16_t x, uint8_t t) {
   x  = (x & 0xF0)<<4 | (x & 0x0F);
   x  = (x<<2 | x) & 0x3333;
   x  = (x<<1 | x) & 0x5555;
   x |= x<<1;
-  for (; t; t--) {                        // print t-times on the OLED
+  for(; t; t--) {                         // print t-times on the OLED
     I2C_write(x);                         // write low  byte
     I2C_write(x>>8);                      // write high byte
   }
@@ -221,7 +246,7 @@ void OLED_printString(const uint8_t* p, uint8_t xpos, uint8_t ypos) {
   I2C_start(OLED_ADDR);                   // start transmission to OLED
   I2C_write(OLED_DAT_MODE);               // set data mode
   uint8_t ch = pgm_read_byte(p);          // read first character from program memory
-  while (ch < 255) {                      // repeat until string terminator
+  while(ch < 255) {                       // repeat until string terminator
     OLED_plotChar(ch);                    // plot character on OLED
     ch = pgm_read_byte(++p);              // read next character
   }
@@ -240,17 +265,17 @@ void OLED_printHex(uint16_t val, uint8_t xpos, uint8_t ypos) {
   I2C_stop();                             // stop transmission
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // IR Receiver Implementation (from http://www.technoblogy.com/show?24A9)
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
-// global variables
+// Global variables
 volatile uint32_t RecdData;
 volatile int8_t   Bit, Edge;
 volatile uint8_t  IRtype;
 uint8_t StartScreen = 0;
   
-// protocol timings
+// Protocol timings
 const uint8_t Micros =        64;   // number of microseconds per TCNT1 count
 const uint8_t SonyIntro =     37;   // 2400/Micros
 const uint8_t SonyMean =      14;   //  900/Micros
@@ -270,7 +295,7 @@ const uint8_t SAMtype = 2;
 const uint8_t RC5type = 3;
 const uint8_t SONtype = 4;
 
-// some "strings"
+// Some "strings"
 const uint8_t IRD[] PROGMEM = { 1, 19, 22, 13, 14, 12, 0, 13, 14, 19, 255};  // "IR DECODER"
 const uint8_t ADR[] PROGMEM = {10, 13, 19, 21, 255};  // "ADR:"
 const uint8_t CMD[] PROGMEM = {12, 17, 13, 21, 255};  // "CMD:"
@@ -280,15 +305,15 @@ const uint8_t IRT[] PROGMEM = {22, 22, 22, 22, 255,   // "    "
                                19, 12, 20,  5, 255,   // "RC-5"
                                 5,  0, 18, 16, 255};  // "SONY"
 
-// print received code
+// Print received code
 void ReceivedCode(uint8_t IRtype, uint16_t Address, uint16_t Command) {
-  if (!StartScreen) {
+  if(!StartScreen) {
     StartScreen = 1;
     OLED_clearScreen();
     OLED_printString(ADR, 50, 0);
     OLED_printString(CMD, 50, 2);
   }
-  if (IRtype < 4) {
+  if(IRtype < 4) {
     OLED_printString(IRT + IRtype + (IRtype<<2), 0, 0);
     OLED_printChar(22, 9, 2); OLED_printChar(22, 18, 2);
   }
@@ -300,72 +325,72 @@ void ReceivedCode(uint8_t IRtype, uint16_t Address, uint16_t Command) {
   OLED_printHex(Command, 92, 2);
 }
 
-// calculate difference
+// Calculate difference
 uint16_t diff(uint16_t a, uint16_t b) {
   if (a > b) return (a - b);
   return (b - a);
 }
 
-// interrupt service routine - called on Timer/Counter1 overflow
+// Interrupt service routine - called on Timer/Counter1 overflow
 ISR(TIMER1_OVF_vect) {
   ReceivedCode(Bit, RecdData>>7, RecdData & 0x7F);
   TIMSK = TIMSK & ~(1<<TOIE1);                  // disable overflow interrupt
   TCNT1 = 250;
 }
 
-// interrupt service routine - called on each edge of IR pin
+// Interrupt service routine - called on each edge of IR pin
 ISR(PCINT0_vect) {
   static uint8_t Mid;                            // edge: 0 = falling, 1 = rising
   uint16_t Time = TCNT1;
-  if (TIFR & 1<<TOV1) { IRtype = 0; Edge = 1; } // overflow
-  else if (Edge != (PINB>>PINB3 & 1));          // ignore if wrong edge
-  else if (IRtype == 0) {
+  if(TIFR & 1<<TOV1) { IRtype = 0; Edge = 1; }  // overflow
+  else if(Edge != (PINB>>PINB3 & 1));           // ignore if wrong edge
+  else if(IRtype == 0) {
   
-    // end of intro pulse
-    if (diff(Time, RC5Half) < 5) {
+    // End of intro pulse
+    if(diff(Time, RC5Half) < 5) {
       IRtype = RC5type; RecdData = 0x2000; Bit = 12; Edge = 0; Mid = 0;
-    } else if (diff(Time, RC5Full) < 5) {
+    } else if(diff(Time, RC5Full) < 5) {
       IRtype = RC5type; RecdData = 0x2000; Bit = 11; Edge = 0; Mid = 1;
-    } else if ((diff(Time, SonyIntro) < 5) && (Edge == 1)) {
+    } else if((diff(Time, SonyIntro) < 5) && (Edge == 1)) {
       IRtype = SONtype; RecdData = 0; Bit = 0;
       TIMSK = TIMSK | 1<<TOIE1;                            // enable overflow interrupt
-    } else if (diff(Time, SamsungIntro) < 18) {
+    } else if(diff(Time, SamsungIntro) < 18) {
       IRtype = SAMtype; RecdData = 0; Bit = -1; Edge = 0;  // ignore first falling edge
-    } else if (diff(Time, NECIntro) < 18) { 
+    } else if(diff(Time, NECIntro) < 18) { 
       IRtype = NECtype; RecdData = 0; Bit = -1; Edge = 0;  // ignore first falling edge
     }
   
-  // data bit
-  } else if (IRtype == RC5type) {
+  // Data bit
+  } else if(IRtype == RC5type) {
     Edge = !Edge;
-    if ((Time < RC5Mean) && Mid) {
+    if((Time < RC5Mean) && Mid) {
       Mid = 0;
     } else {
       Mid = 1;
       RecdData = RecdData | ((uint32_t) Edge<<Bit);
-      if (Bit == 0) ReceivedCode(RC5type, RecdData>>6 & 0x1F,
+      if(Bit == 0) ReceivedCode(RC5type, RecdData>>6 & 0x1F,
         (~(RecdData>>6) & 0x40) | (RecdData & 0x3F));
       Bit--;
     }
-  } else if (IRtype == SONtype) {
+  } else if(IRtype == SONtype) {
     if (Time > SonyMean) RecdData = RecdData | ((uint32_t) 1<<Bit);
     Bit++;
-  } else if ((IRtype == NECtype) || (IRtype == SAMtype)) {
-    if (Time > NECMean && Bit >= 0) RecdData = RecdData | ((uint32_t) 1<<Bit);
+  } else if((IRtype == NECtype) || (IRtype == SAMtype)) {
+    if(Time > NECMean && Bit >= 0) RecdData = RecdData | ((uint32_t) 1<<Bit);
     Bit++;
-    if (Bit == 32) ReceivedCode(IRtype, RecdData & 0xFFFF, RecdData>>16);
+    if(Bit == 32) ReceivedCode(IRtype, RecdData & 0xFFFF, RecdData>>16);
   }
   
   TCNT1 = 0;                  // clear counter
   TIFR = TIFR | 1<<TOV1;      // clear overflow
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Main Function
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 int main(void) {
-  // setup
+  // Setup
   OLED_init();
   OLED_clearScreen();
   TCCR1 = 7<<CS10;              // no compare matches ; /64
@@ -373,9 +398,9 @@ int main(void) {
   GIMSK = 1<<PCIE;              // enable pin change interrupts
   sei();                        // enable global interrupts
 
-  // print heading
+  // Print heading
   OLED_printString(IRD, 18, 1);
 
-  // loop
+  // Loop
   while(1);                     // everything done under interrupt!
 }
