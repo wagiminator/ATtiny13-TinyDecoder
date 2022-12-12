@@ -173,10 +173,9 @@ Since there is no ICSP header on the board, you have to program the ATtiny eithe
 ### If using the makefile (Linux/Mac)
 - Make sure you have installed [avr-gcc toolchain and avrdude](http://maxembedded.com/2015/06/setting-up-avr-gcc-toolchain-on-linux-and-mac-os-x/).
 - Connect your programmer to your PC and to the ATtiny.
-- Open the makefile and change the programmer if you are not using usbasp.
 - Open a terminal.
 - Navigate to the folder with the makefile and sketch.
-- Run "make install" to compile, burn the fuses and upload the firmware.
+- Run `PROGRMR=usbasp make install` to compile, burn the fuses and upload the firmware (change PROGRMR accordingly).
 
 ## Upgrading to an ATtiny25
 The 1 KB flash of the ATtiny13 is too small to implement the decoding of several protocols in combination with an OLED display (at least I didn't manage to do it). Fortunately, there are pin-compatible models with more memory. The ATtiny25 is available in the same package (150mil SOIC-8, e.g. ATtiny25-20SSU) and double flash memory. In order not to reinvent the wheel, I took David Johnson-Davies' excellent implementation of his [IR Remote Control Detective](http://www.technoblogy.com/show?24A9) for the ATtiny85 and adapted it so that it works with the 2 KB flash of the ATtiny25. In addition to the NEC protocol, Samsung, Sony and RC-5 can also be decoded without further hardware adjustments.
